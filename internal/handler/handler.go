@@ -30,7 +30,6 @@ func (h *Handler) AddFunds(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		WriteResp(rw, http.StatusBadRequest, err.Error())
 	}
-	fmt.Println(string(body))
 	var b SumRequest
 	if err := json.Unmarshal(body, &b); err != nil {
 		WriteResp(rw, http.StatusInternalServerError, err.Error())
@@ -50,7 +49,8 @@ func (h *Handler) Withdraw(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.s.Account.Withdraw(b.Sum); err != nil {
-		WriteResp(rw, http.StatusInternalServerError, err.Error())
+		WriteResp(rw, http.StatusBadRequest, err.Error())
+		return
 	}
 	WriteResp(rw, http.StatusOK, "списание произошло успешно")
 

@@ -15,7 +15,7 @@ func main() {
 
 	db := dbInit()
 
-	// defer db.Close()
+	defer db.Close()
 
 	repo := repository.NewRepositry(db)
 	service := service.NewService(repo)

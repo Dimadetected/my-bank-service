@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	info "github.com/Dimadetected/my-bank-service/interface"
 	"github.com/Dimadetected/my-bank-service/internal/models"
@@ -41,44 +42,58 @@ func (a *Account) GetAccount() (*models.Account, error) {
 // GetAccount возвращает информацию о счете
 func (a *Account) CreatePayment(sum float64) error {
 	//Создаем транзакцию
-	fmt.Println(0)
 	tx, err := a.DB.Begin()
 	defer tx.Commit()
 	if err != nil {
 		return nil
 	}
-	fmt.Println(1)
 	//Записываем в бд начисление
-	if _, err := tx.Exec(`insert into $1 (sum,is_checked,type) values ($2,$3,$4)`, paymentsTable, sum, false, paymentTypePayment); err != nil {
+	q := fmt.Sprintf(`insert into %s (sum,is_checked,type) values (%f,%t,'%s')`, paymentsTable, sum, false, paymentTypePayment)
+	fmt.Println(q)
+	if _, err := tx.Exec(q); err != nil {
 		tx.Rollback()
 		return err
 	}
-	fmt.Println(2)
 
 	//Увеличиваем сумму счета
-	if _, err := tx.Exec(`update $1 set sum = sum + 2`, accountTable, sum); err != nil {
+	q = fmt.Sprintf(`update %s set sum = sum + %f`, accountTable, sum)
+	fmt.Println(q)
+	if _, err := tx.Exec(q); err != nil {
 		tx.Rollback()
 		return err
 	}
-	fmt.Println(3)
 
 	return nil
 }
+
+type Percent struct {
+	ID  int
+	Sum float64
+}
+
 func (a *Account) PercentCalculate() error {
 	//Получаем из бд все начисления, на которые не были начислены проценты
-	rows, err := a.DB.Query(`select id, sum from $1 where type = $2 and is_checked = $3`, accountTable, paymentTypePayment, false)
+	acc, err := a.GetAccount()
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
+	q := fmt.Sprintf(`select id, sum from %s where type = '%s' and is_checked = %d`, paymentsTable, paymentTypePayment, 0)
+	fmt.Println(q)
+	rows, err := a.DB.Query(q)
+	if err != nil {
+		return err
+	}
+	var perc []Percent
 	for rows.Next() {
-		var id int
-		var sum float64
+		var p Percent
 		//Получаем из бд id и сумму начисления
-		if err := rows.Scan(&id, &sum); err != nil {
+		if err := rows.Scan(&p.ID, &p.Sum); err != nil {
 			return err
 		}
-
+		perc = append(perc, p)
+	}
+	rows.Close()
+	for _, p := range perc {
 		//Начинаем транзакцию
 		tx, err := a.DB.Begin()
 
@@ -86,27 +101,39 @@ func (a *Account) PercentCalculate() error {
 			return err
 		}
 		//Считаем процент начисления
-		sum *= 0.06
+		sum := acc.Sum * 0.06
 
 		//Добавляем в таблицу payments начисление процентов
-		if _, err := tx.Exec(`insert into $1 (sum,is_checked,type) values ($2,$3,$4)`, paymentsTable, sum, true, paymentTypePercent); err != nil {
+		q = fmt.Sprintf(`insert into %s (sum,is_checked,type) values (%f,%d,'%s')`, paymentsTable, sum, 1, paymentTypePercent)
+		fmt.Println(q)
+		if _, err := tx.Exec(q); err != nil {
+			log.Print(err)
 			tx.Rollback()
 			return err
 		}
 
 		//Изменяем сумму аккаунта
-		if _, err := tx.Exec(`update $1 set sum = sum + 2`, accountTable, sum); err != nil {
+		fmt.Println(q)
+		q = fmt.Sprintf(`update %s set sum = sum + %f`, accountTable, sum)
+		if _, err := tx.Exec(q); err != nil {
+			log.Print(err)
 			tx.Rollback()
 			return err
 		}
 
 		//Изменяем статус платежа на проверенный
-		if _, err := tx.Exec(`update $1 set is_checked = $2`, paymentsTable, true); err != nil {
+		fmt.Println("test fuck")
+		fmt.Println(q)
+		q = fmt.Sprintf(`update %s set is_checked = %d where id = %d`, paymentsTable, 1, p.ID)
+		if _, err := tx.Exec(q); err != nil {
+			log.Print(err)
 			tx.Rollback()
 			return err
 		}
 
-		tx.Commit()
+		if err := tx.Commit(); err != nil {
+			fmt.Println(err)
+		}
 	}
 	return nil
 }

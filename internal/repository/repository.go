@@ -13,6 +13,8 @@ type Repository struct {
 
 type AccountInterface interface {
 	GetAccount() (*models.Account, error)
+	CreatePayment(sum float64) error
+	PercentCalculate() error
 }
 
 func NewRepositry(db *sql.DB) *Repository {

@@ -1,18 +1,16 @@
 package service
 
 import (
-	"github.com/Dimadetected/my-bank-service/internal/repository"
 	info "github.com/Dimadetected/my-bank-service/interface"
+	"github.com/Dimadetected/my-bank-service/internal/repository"
 )
 
 type Service struct {
-	repo    *repository.Repository
-	Account  info.AccountInterface
+	Account info.AccountInterface
 }
 
 func NewService(r *repository.Repository) *Service {
 	return &Service{
-		repo:    r,
-		Account: NewAccount(),
+		Account: NewAccount(r.Account),
 	}
 }

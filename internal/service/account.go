@@ -14,18 +14,17 @@ const (
 )
 
 type Account struct {
-	r repository.Account
+	r repository.AccountInterface
 }
 
-func NewAccount() *Account {
-	return &Account{}
+func NewAccount(r repository.AccountInterface) *Account {
+	return &Account{r: r}
 }
 
 func (a *Account) AddFunds(sum float64) {
 	fmt.Println(sum)
 	if err := a.r.CreatePayment(sum); err != nil {
-		fmt.Println(err.Error())
-		return
+		panic(err)
 	}
 	a.SumProfit()
 }
@@ -74,18 +73,15 @@ func (a *Account) GetAccountCurrencyRate(cur info.Currency) float64 {
 
 // GetBalance Выдаёт баланс счёта в указанной валюте
 func (a *Account) GetBalance(cur info.Currency) float64 {
-	fmt.Println("12=",a)
+	fmt.Println("12=", a)
 	acc, err := a.r.GetAccount()
 	if err != nil {
 		panic(err)
 	}
 
-	var balance float64
-	switch cur {
-	case info.CurrencyRUB:
+	balance := acc.Sum
+	if cur == info.CurrencyRUB {
 		balance = acc.Sum * SBP2RUB
-	case info.CurrencySBP:
-		balance = acc.Sum * RUB2SBP
 	}
 
 	return balance
