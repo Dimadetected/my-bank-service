@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
 	"github.com/Dimadetected/my-bank-service/internal/handler"
@@ -15,8 +14,6 @@ func main() {
 
 	db := dbInit()
 
-	defer db.Close()
-
 	repo := repository.NewRepositry(db)
 	service := service.NewService(repo)
 	h := handler.NewHandler(service)
@@ -27,7 +24,6 @@ func main() {
 	http.HandleFunc("/SumProfit", h.SumProfit)
 	http.HandleFunc("/GetAccountCurrencyRate", h.GetAccountCurrencyRate)
 	http.HandleFunc("/GetBalance", h.GetBalance)
-	fmt.Println(db)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}

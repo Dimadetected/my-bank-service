@@ -26,6 +26,11 @@ type CurrencyRequest struct {
 }
 
 func (h *Handler) AddFunds(rw http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		WriteResp(rw, http.StatusMethodNotAllowed, "only POST method supported")
+		return
+	}
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		WriteResp(rw, http.StatusBadRequest, err.Error())
@@ -38,6 +43,11 @@ func (h *Handler) AddFunds(rw http.ResponseWriter, r *http.Request) {
 	WriteResp(rw, http.StatusOK, "сумма успешно добавлена")
 }
 func (h *Handler) Withdraw(rw http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		WriteResp(rw, http.StatusMethodNotAllowed, "only POST method supported")
+		return
+	}
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		WriteResp(rw, http.StatusBadRequest, err.Error())
@@ -56,39 +66,46 @@ func (h *Handler) Withdraw(rw http.ResponseWriter, r *http.Request) {
 
 }
 func (h *Handler) GetCurrency(rw http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		WriteResp(rw, http.StatusMethodNotAllowed, "only GET method supported")
+		return
+	}
 	curr := h.s.Account.GetCurrency()
 	WriteResp(rw, http.StatusOK, curr)
 }
 func (h *Handler) SumProfit(rw http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		WriteResp(rw, http.StatusMethodNotAllowed, "only GET method supported")
+		return
+	}
 	h.s.Account.SumProfit()
 	WriteResp(rw, http.StatusOK, "начисления успешно посчитаны")
 
 }
 func (h *Handler) GetAccountCurrencyRate(rw http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		WriteResp(rw, http.StatusBadRequest, err.Error())
+	if r.Method != "GET" {
+		WriteResp(rw, http.StatusMethodNotAllowed, "only GET method supported")
+		return
 	}
 
-	var b CurrencyRequest
-	if err := json.Unmarshal(body, &b); err != nil {
-		WriteResp(rw, http.StatusBadRequest, err.Error())
+	cur := r.URL.Query().Get("currency")
+	if cur == "" {
+		WriteResp(rw, http.StatusBadRequest, "Параметр currency не указан")
 	}
-
-	current := h.s.Account.GetAccountCurrencyRate(info.Currency(b.Currency))
-	WriteResp(rw, http.StatusOK, fmt.Sprintf("%f %s", current, b.Currency))
+	current := h.s.Account.GetAccountCurrencyRate(info.Currency(cur))
+	WriteResp(rw, http.StatusOK, fmt.Sprintf("%f %s", current, cur))
 
 }
 func (h *Handler) GetBalance(rw http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		WriteResp(rw, http.StatusBadRequest, err.Error())
+	if r.Method != "GET" {
+		WriteResp(rw, http.StatusMethodNotAllowed, "only GET method supported")
+		return
 	}
-	var b CurrencyRequest
-	if err := json.Unmarshal(body, &b); err != nil {
-		WriteResp(rw, http.StatusBadRequest, err.Error())
+	cur := r.URL.Query().Get("currency")
+	if cur == "" {
+		WriteResp(rw, http.StatusBadRequest, "Параметр currency не указан")
 	}
-	balance := h.s.Account.GetBalance(info.Currency(b.Currency))
+	balance := h.s.Account.GetBalance(info.Currency(cur))
 	WriteResp(rw, http.StatusOK, fmt.Sprintf("%f %s", balance, "SBP"))
 }
 func WriteResp(rw http.ResponseWriter, code int, errStr interface{}) {

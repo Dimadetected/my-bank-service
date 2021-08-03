@@ -49,7 +49,6 @@ func (a *Account) CreatePayment(sum float64) error {
 	}
 	//Записываем в бд начисление
 	q := fmt.Sprintf(`insert into %s (sum,is_checked,type) values (%f,%t,'%s')`, paymentsTable, sum, false, paymentTypePayment)
-	fmt.Println(q)
 	if _, err := tx.Exec(q); err != nil {
 		tx.Rollback()
 		return err
@@ -57,7 +56,6 @@ func (a *Account) CreatePayment(sum float64) error {
 
 	//Увеличиваем сумму счета
 	q = fmt.Sprintf(`update %s set sum = sum + %f`, accountTable, sum)
-	fmt.Println(q)
 	if _, err := tx.Exec(q); err != nil {
 		tx.Rollback()
 		return err
@@ -104,7 +102,6 @@ func (a *Account) PercentCalculate() error {
 
 		//Добавляем в таблицу payments начисление процентов
 		q = fmt.Sprintf(`insert into %s (sum,is_checked,type) values (%f,%d,'%s')`, paymentsTable, sum, 1, paymentTypePercent)
-		fmt.Println(q)
 		if _, err := tx.Exec(q); err != nil {
 			log.Print(err)
 			tx.Rollback()
@@ -112,7 +109,6 @@ func (a *Account) PercentCalculate() error {
 		}
 
 		//Изменяем сумму аккаунта
-		fmt.Println(q)
 		q = fmt.Sprintf(`update %s set sum = sum + %f`, accountTable, sum)
 		if _, err := tx.Exec(q); err != nil {
 			log.Print(err)
