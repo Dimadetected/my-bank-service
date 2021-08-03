@@ -24,7 +24,8 @@ func NewAccount() *Account {
 func (a *Account) AddFunds(sum float64) {
 	fmt.Println(sum)
 	if err := a.r.CreatePayment(sum); err != nil {
-		panic(err)
+		fmt.Println(err.Error())
+		return
 	}
 	a.SumProfit()
 }
@@ -73,6 +74,7 @@ func (a *Account) GetAccountCurrencyRate(cur info.Currency) float64 {
 
 // GetBalance Выдаёт баланс счёта в указанной валюте
 func (a *Account) GetBalance(cur info.Currency) float64 {
+	fmt.Println("12=",a)
 	acc, err := a.r.GetAccount()
 	if err != nil {
 		panic(err)

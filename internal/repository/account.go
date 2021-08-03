@@ -4,16 +4,17 @@ import (
 	"database/sql"
 	"fmt"
 
+	info "github.com/Dimadetected/my-bank-service/interface"
 	"github.com/Dimadetected/my-bank-service/internal/models"
 )
 
 type Account struct {
-	db *sql.DB
+	DB *sql.DB
 }
 
 func NewAccount(db *sql.DB) *Account {
 	return &Account{
-		db: db,
+		DB: db,
 	}
 }
 
@@ -27,21 +28,21 @@ const (
 
 // GetAccount возвращает информацию о счете
 func (a *Account) GetAccount() (*models.Account, error) {
-	var acc *models.Account
-
+	acc := models.Account{}
+	var curr string
 	//Получаем все данные аккаунта
-	if err := a.db.QueryRow(`select * from $1`, accountTable).Scan(&acc.ID, &acc.Currency, &acc.Sum); err != nil {
+	if err := a.DB.QueryRow(`select * from accounts`).Scan(&acc.ID, &curr, &acc.Sum); err != nil {
 		return nil, err
 	}
-	fmt.Println(acc)
-	return acc, nil
+	acc.Currency = info.Currency(curr)
+	return &acc, nil
 }
 
 // GetAccount возвращает информацию о счете
 func (a *Account) CreatePayment(sum float64) error {
 	//Создаем транзакцию
 	fmt.Println(0)
-	tx, err := a.db.Begin()
+	tx, err := a.DB.Begin()
 	defer tx.Commit()
 	if err != nil {
 		return nil
@@ -65,7 +66,7 @@ func (a *Account) CreatePayment(sum float64) error {
 }
 func (a *Account) PercentCalculate() error {
 	//Получаем из бд все начисления, на которые не были начислены проценты
-	rows, err := a.db.Query(`select id, sum from $1 where type = $2 and is_checked = $3`, accountTable, paymentTypePayment, false)
+	rows, err := a.DB.Query(`select id, sum from $1 where type = $2 and is_checked = $3`, accountTable, paymentTypePayment, false)
 	if err != nil {
 		return err
 	}
@@ -79,7 +80,7 @@ func (a *Account) PercentCalculate() error {
 		}
 
 		//Начинаем транзакцию
-		tx, err := a.db.Begin()
+		tx, err := a.DB.Begin()
 
 		if err != nil {
 			return err

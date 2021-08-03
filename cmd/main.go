@@ -15,8 +15,7 @@ func main() {
 
 	db := dbInit()
 
-	fmt.Println(db.Ping())
-	defer db.Close()
+	// defer db.Close()
 
 	repo := repository.NewRepositry(db)
 	service := service.NewService(repo)
@@ -28,10 +27,11 @@ func main() {
 	http.HandleFunc("/SumProfit", h.SumProfit)
 	http.HandleFunc("/GetAccountCurrencyRate", h.GetAccountCurrencyRate)
 	http.HandleFunc("/GetBalance", h.GetBalance)
-
+	fmt.Println(db)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}
+	db.Close()
 }
 
 func dbInit() *sql.DB {
@@ -44,6 +44,7 @@ func dbInit() *sql.DB {
 	if err := db.QueryRow(`select count(*) from accounts`).Scan(&count); err != nil {
 		panic(err)
 	}
+
 	if count == 0 {
 		if _, err := db.Exec(`INSERT INTO accounts (currency, sum) VALUES ('SBP', 0);`); err != nil {
 			panic(err)

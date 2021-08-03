@@ -84,12 +84,10 @@ func (h *Handler) GetBalance(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		WriteResp(rw, http.StatusBadRequest, err.Error())
 	}
-
 	var b CurrencyRequest
 	if err := json.Unmarshal(body, &b); err != nil {
 		WriteResp(rw, http.StatusBadRequest, err.Error())
 	}
-
 	balance := h.s.Account.GetBalance(info.Currency(b.Currency))
 	WriteResp(rw, http.StatusOK, fmt.Sprintf("%f %s", balance, "SBP"))
 }
