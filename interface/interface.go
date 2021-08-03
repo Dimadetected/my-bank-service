@@ -1,4 +1,4 @@
-package main
+package info
 
 type Currency string
 
