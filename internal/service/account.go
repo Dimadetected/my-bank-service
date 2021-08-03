@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 
 	info "github.com/Dimadetected/my-bank-service/interface"
 	"github.com/Dimadetected/my-bank-service/internal/repository"
@@ -22,10 +21,10 @@ func NewAccount(r repository.AccountInterface) *Account {
 }
 
 func (a *Account) AddFunds(sum float64) {
-	fmt.Println(sum)
 	if err := a.r.CreatePayment(sum); err != nil {
 		panic(err)
 	}
+
 	a.SumProfit()
 }
 
@@ -73,7 +72,6 @@ func (a *Account) GetAccountCurrencyRate(cur info.Currency) float64 {
 
 // GetBalance Выдаёт баланс счёта в указанной валюте
 func (a *Account) GetBalance(cur info.Currency) float64 {
-	fmt.Println("12=", a)
 	acc, err := a.r.GetAccount()
 	if err != nil {
 		panic(err)

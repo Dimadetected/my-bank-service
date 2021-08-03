@@ -78,7 +78,6 @@ func (a *Account) PercentCalculate() error {
 		return err
 	}
 	q := fmt.Sprintf(`select id, sum from %s where type = '%s' and is_checked = %d`, paymentsTable, paymentTypePayment, 0)
-	fmt.Println(q)
 	rows, err := a.DB.Query(q)
 	if err != nil {
 		return err
@@ -122,8 +121,6 @@ func (a *Account) PercentCalculate() error {
 		}
 
 		//Изменяем статус платежа на проверенный
-		fmt.Println("test fuck")
-		fmt.Println(q)
 		q = fmt.Sprintf(`update %s set is_checked = %d where id = %d`, paymentsTable, 1, p.ID)
 		if _, err := tx.Exec(q); err != nil {
 			log.Print(err)
@@ -132,7 +129,7 @@ func (a *Account) PercentCalculate() error {
 		}
 
 		if err := tx.Commit(); err != nil {
-			fmt.Println(err)
+			log.Print(err)
 		}
 	}
 	return nil
